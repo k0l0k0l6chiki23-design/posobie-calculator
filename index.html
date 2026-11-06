@@ -6,7 +6,7 @@
 </style>
 <main><span class="tag">ЕДИНОЕ ПОСОБИЕ · КАЛЬКУЛЯТОР</span><h1>Какой доход позволяет получить пособие?</h1><p>Выберите регион и состав семьи. Покажем максимальный годовой доход по таблице расчётов.</p>
 <div class="layout"><form class="card" id="form"><h2>Ваша семья</h2>
-<label for="year">Год расчёта</label><select id="year"><option value="2026">2026</option><option value="2027">2027 — предварительные данные</option></select>
+<label for="year">Год расчёта</label><select id="year"><option value="2026">2026</option><option value="2027">2027</option></select>
 <label for="region">Регион</label><input id="region" list="regions" required placeholder="Начните вводить название" autocomplete="off"><datalist id="regions"></datalist>
 <label for="adults">Родители / законные представители</label><select id="adults"><option value="1">1</option><option value="2" selected>2</option></select>
 <label for="teen">Дети от 17 до 18 лет</label><input id="teen" type="number" min="0" max="20" step="1" value="0" required>
@@ -16,5 +16,5 @@
 <section class="card" id="result" aria-live="polite" tabindex="-1"><h2>Ваш результат</h2><p class="hint">Заполните анкету слева и нажмите «Получить расчёт».</p></section></div>
 <section class="card" id="guide" hidden style="margin-top:24px"><h2>Получить памятку «Какой доход учитывают?»</h2><a class="button" href="https://t.me/mama_4kids_v_nedvizhke/680" target="_blank" rel="noopener noreferrer">Открыть памятку в Telegram</a><a class="button secondary" href="https://max.ru/c/-71061112187457/AaGmL8Xrb_k" target="_blank" rel="noopener noreferrer">Открыть памятку в MAX</a></section>
 <section class="card" id="services" hidden style="margin-top:24px"><h2>Помощь по вашей ситуации</h2><p>Выберите услугу и удобный мессенджер. В WhatsApp текст обращения уже заполнен — останется отправить. Для MAX скопируйте текст и вставьте его в личный чат.</p><div class="services-grid" id="service-list"></div></section>
-<p class="hint">Расчёт учитывает только доход. Для назначения пособия также проверяются имущество, занятость и уважительные причины отсутствия заработка. Данные 2027 года предварительные. Результат не гарантирует назначение пособия.</p></main>
+<p class="hint">Расчёт учитывает только доход. Для назначения пособия также проверяются имущество, занятость и уважительные причины отсутствия заработка. Для регионов без подтверждённых сумм ПМ расчёт на 2027 год предварительный. Результат не гарантирует назначение пособия.</p></main>
 <script src="data.js"></script><script src="engine.js"></script><script src="app.js"></script></html>

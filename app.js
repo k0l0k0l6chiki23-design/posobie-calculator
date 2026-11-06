@@ -8,9 +8,12 @@ function add(parent,tag,text,cls){const el=document.createElement(tag);el.textCo
 $('form').addEventListener('input',()=>{$('guide').hidden=true;$('services').hidden=true;$('result').replaceChildren();add($('result'),'h2','Ваш результат');add($('result'),'p','Параметры изменились. Нажмите «Получить расчёт» заново.','hint');});
 $('form').addEventListener('submit',event=>{
  event.preventDefault();const a={year:Number($('year').value),region:$('region').value.trim(),adults:Number($('adults').value),teen:Number($('teen').value),student:Number($('student').value),children:Number($('children').value),pregnant:$('pregnant').checked};
- const result=$('result');result.replaceChildren();add(result,'h2',a.year===2027?'Предварительный расчёт · 2027':'Ваш расчёт · 2026');
+ const result=$('result');result.replaceChildren();const heading=add(result,'h2',`Расчёт дохода · ${a.year}`);
  const answer=calculate(REGION_ROWS,a);$('guide').hidden=true;$('services').hidden=true;
  if(answer.error){add(result,'p',answer.error,'notice');}else{
+ const approved=a.year===2026||answer.row.pm_status==='approved';
+ heading.textContent=approved?`Расчёт дохода на ${a.year} год`:`Предварительный расчёт · ${a.year}`;
+ if(approved&&a.year===2027)add(result,'p','По утверждённому прожиточному минимуму','hint');
  add(result,'p',`${a.region} · взрослых с детьми 17+: ${a.adults+a.teen+a.student} · детей до 17: ${a.children}`);
  add(result,'p','Максимальный общий доход семьи за год:','hint');
  for(const [percent,key] of [[100,'threshold_100'],[75,'threshold_75'],[50,'threshold_50']]){const item=add(result,'div','','item');add(item,'div',`Для выплаты ${percent}% прожиточного минимума`);add(item,'div',money(answer.row[key]),'amount');}
