@@ -118,13 +118,41 @@ for (const row of REGION_ROWS) {
 
 const $=id=>document.getElementById(id);
 const regions=[...new Set(REGION_ROWS.map(r=>r.region))].sort((a,b)=>a.localeCompare(b,'ru'));
-for(const region of regions){const el=document.createElement('option');el.value=region;$('regions').append(el);}
+for(const region of regions){
+ const option=document.createElement('option');option.value=region;$('regions').append(option);
+ const mobileOption=document.createElement('option');mobileOption.value=region;mobileOption.textContent=region;$('region-mobile').append(mobileOption);
+}
+// Mobile browsers, especially Instagram's in-app browser, do not consistently support datalist.
+// Use the platform's touch-friendly scrolling picker there, and a searchable field on desktop.
+const normalizeRegion=s=>s.toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[—–-]/g,' ').replace(/[^а-я0-9]+/g,' ').trim().replace(/\s+/g,' ');
+function resolveRegion(input){
+ const query=normalizeRegion(input);
+ if(!query)return null;
+ const exact=regions.find(r=>normalizeRegion(r)===query);
+ if(exact)return exact;
+ const matches=regions.filter(r=>{
+  const full=normalizeRegion(r);
+  const withoutRepublic=full.replace(/^республика /,'');
+  return full.includes(query)||withoutRepublic.includes(query);
+ });
+ return matches.length===1?matches[0]:null;
+}
+$('region').addEventListener('change',()=>{
+ const resolved=resolveRegion($('region').value);
+ if(resolved){$('region').value=resolved;$('region-mobile').value=resolved;}
+});
+$('region-mobile').addEventListener('change',()=>{$('region').value=$('region-mobile').value;});
 const money=value=>value===null?'нет данных':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(value);
 function add(parent,tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;parent.append(el);return el;}
 $('form').addEventListener('input',()=>{$('guide').hidden=true;$('services').hidden=true;$('result').replaceChildren();add($('result'),'h2','Ваш результат');add($('result'),'p','Параметры изменились. Нажмите «Получить расчёт» заново.','hint');});
 $('form').addEventListener('submit',event=>{
- event.preventDefault();const a={year:Number($('year').value),region:$('region').value.trim(),adults:Number($('adults').value),teen:Number($('teen').value),student:Number($('student').value),children:Number($('children').value),pregnant:$('pregnant').checked};
+ event.preventDefault();
+ const mobile=window.matchMedia('(max-width:720px)').matches;
+ const selected=mobile?$('region-mobile').value:resolveRegion($('region').value);
+ const a={year:Number($('year').value),region:selected||'',adults:Number($('adults').value),teen:Number($('teen').value),student:Number($('student').value),children:Number($('children').value),pregnant:$('pregnant').checked};
  const result=$('result');result.replaceChildren();const heading=add(result,'h2',`Расчёт дохода · ${a.year}`);
+ if(!selected){add(result,'p','Выберите регион из списка. На телефоне нажмите на поле «Регион» и прокрутите список.','notice');result.focus();return;}
+ $('region').value=selected;$('region-mobile').value=selected;
  const answer=calculate(REGION_ROWS,a);$('guide').hidden=true;$('services').hidden=true;
  if(answer.error){add(result,'p',answer.error,'notice');}else{
  const approved=a.year===2026||answer.row.pm_status==='approved';
