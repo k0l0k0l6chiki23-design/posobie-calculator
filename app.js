@@ -1,5 +1,106 @@
 const WHATSAPP_NUMBER='79283295566';
 const MAX_CONTACT_URL='https://max.ru/u/f9LHodD0cOIr099tbW7LC7aCeRBYJbT6iTcerRTzFBQJ-Ks2AD9zy7hty4A';
+// Актуализация утверждённых ПМ на 2027 год (16.11.2026); ПМ-2026 не изменяются.
+const APPROVED_PM_2027_20261116 = {
+  "г. Москва": [
+    26432,
+    22845,
+    30184
+  ],
+  "Забайкальский край": [
+    23666,
+    22956,
+    25796
+  ],
+  "Еврейская автономная область": [
+    25284,
+    24525,
+    27560
+  ],
+  "Приморский край": [
+    24070,
+    23348,
+    26236
+  ],
+  "Новгородская область": [
+    19822,
+    19227,
+    21606
+  ],
+  "Мурманская область": [
+    27462,
+    26638,
+    29934
+  ],
+  "Республика Карелия — Северная часть": [
+    23799,
+    23085,
+    25941
+  ],
+  "Республика Карелия — Другие территории": [
+    22227,
+    21560,
+    24227
+  ],
+  "Кемеровская область": [
+    18407,
+    17855,
+    20064
+  ],
+  "Тверская область": [
+    19822,
+    19228,
+    21606
+  ],
+  "Липецкая область": [
+    16788,
+    16284,
+    18299
+  ],
+  "Кировская область": [
+    18002,
+    17462,
+    19622
+  ],
+  "Республика Бурятия": [
+    22047,
+    21386,
+    24031
+  ],
+  "Тюменская область": [
+    20227,
+    19620,
+    22047
+  ],
+  "Республика Саха (Якутия) — Зона I": [
+    35735,
+    34664,
+    38952
+  ]
+};
+function recalcApprovedPm2027(row, pm) {
+ const [d, c, w] = pm, k = row.children;
+ let totals;
+ if (/^adult[123]$/.test(row.family_type)) {
+  const n = Number(row.family_type.slice(-1)), base = (n + k) * d * 12;
+  totals = [base - c * k * 9, base - c * k * 6, base];
+ } else if (row.family_type === 'preg' || row.family_type === 'preg_husband') {
+  const n = row.family_type === 'preg' ? 1 : 2;
+  if (k === 0) totals = [d * 12 * n - w * 6, d * 12 * n - w * 4, d * 12 * n];
+  else {
+   const base = w * 8 + c * k * 12 + (row.family_type === 'preg' ? (k >= 4 ? d * 12 : 0) : d * 12);
+   totals = [base - w * 6 - c * k * 9, base - w * 4 - c * k * 6, base];
+  }
+ } else return;
+ Object.assign(row, {threshold_100:totals[0], threshold_75:totals[1], threshold_50:totals[2],
+  pm_dush:d, pm_child_100:c, pm_work_100:w, pm_status:'approved'});
+}
+for (const row of REGION_ROWS) {
+ if (row.year === 2027 && Object.prototype.hasOwnProperty.call(APPROVED_PM_2027_20261116, row.region)) {
+  recalcApprovedPm2027(row, APPROVED_PM_2027_20261116[row.region]);
+ }
+}
+
 const $=id=>document.getElementById(id);
 const regions=[...new Set(REGION_ROWS.map(r=>r.region))].sort((a,b)=>a.localeCompare(b,'ru'));
 for(const region of regions){const el=document.createElement('option');el.value=region;$('regions').append(el);}
