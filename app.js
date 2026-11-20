@@ -1,7 +1,7 @@
 const WHATSAPP_NUMBER='79283295566';
 const MAX_CONTACT_URL='https://max.ru/u/f9LHodD0cOIr099tbW7LC7aCeRBYJbT6iTcerRTzFBQJ-Ks2AD9zy7hty4A';
-// Актуализация утверждённых ПМ на 2027 год (19.11.2026); ПМ-2026 не изменяются.
-const APPROVED_PM_2027_20261116 = {
+// Актуализация утверждённых ПМ на 2027 год (20.11.2026); ПМ-2026 не изменяются.
+const APPROVED_PM_2027_20261120 = {
   "г. Москва": [
     26432,
     22845,
@@ -131,6 +131,21 @@ const APPROVED_PM_2027_20261116 = {
     20025,
     19424,
     21827
+  ],
+  "Магаданская область": [
+    35195,
+    34139,
+    38363
+  ],
+  "Республика Татарстан": [
+    17193,
+    16677,
+    18740
+  ],
+  "Чукотский автономный округ": [
+    52792,
+    51208,
+    57543
   ]
 };
 function recalcApprovedPm2027(row, pm) {
@@ -151,8 +166,8 @@ function recalcApprovedPm2027(row, pm) {
   pm_dush:d, pm_child_100:c, pm_work_100:w, pm_status:'approved'});
 }
 for (const row of REGION_ROWS) {
- if (row.year === 2027 && Object.prototype.hasOwnProperty.call(APPROVED_PM_2027_20261116, row.region)) {
-  recalcApprovedPm2027(row, APPROVED_PM_2027_20261116[row.region]);
+ if (row.year === 2027 && Object.prototype.hasOwnProperty.call(APPROVED_PM_2027_20261120, row.region)) {
+  recalcApprovedPm2027(row, APPROVED_PM_2027_20261120[row.region]);
  }
 }
 
