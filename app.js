@@ -148,7 +148,71 @@ const APPROVED_PM_2027_20261120 = {
     57543
   ]
 };
-function recalcApprovedPm2027(row, pm) {
+// ПМ-2027 по проекту постановления, одобренному правительством края 17.11.2026.
+// До публикации подписанного акта отличаем этот источник от окончательно утверждённых данных.
+const KRASNOYARSK_PM_2027_PROJECT_20261120 = {
+  "Красноярский край — Район Северо-Енисейский, город Норильск": [
+    31612,
+    30663,
+    34458
+  ],
+  "Красноярский край — Район Туруханский": [
+    41134,
+    39899,
+    44837
+  ],
+  "Красноярский край — Район Таймырский Долгано-Ненецкий, кроме сельского поселения Хатанги": [
+    34089,
+    33066,
+    37157
+  ],
+  "Красноярский край — Сельское поселение Хатанга": [
+    56734,
+    55031,
+    61841
+  ],
+  "Красноярский край — Район Эвенкийский": [
+    34677,
+    33636,
+    37799
+  ],
+  "Красноярский край — Город Енисейск": [
+    29657,
+    28767,
+    32326
+  ],
+  "Красноярский край — Район Енисейский": [
+    31534,
+    30587,
+    34372
+  ],
+  "Красноярский край — Город Лесосибирск": [
+    24778,
+    24034,
+    27008
+  ],
+  "Красноярский край — Район Богучанский": [
+    31015,
+    30084,
+    33807
+  ],
+  "Красноярский край — Район Кежемский": [
+    29372,
+    28490,
+    32016
+  ],
+  "Красноярский край — Район Мотыгинский": [
+    30272,
+    29363,
+    32997
+  ],
+  "Красноярский край — Другие территории": [
+    21246,
+    20609,
+    23159
+  ]
+};
+function recalcApprovedPm2027(row, pm, status='approved') {
  const [d, c, w] = pm, k = row.children;
  let totals;
  if (/^adult[123]$/.test(row.family_type)) {
@@ -163,11 +227,16 @@ function recalcApprovedPm2027(row, pm) {
   }
  } else return;
  Object.assign(row, {threshold_100:totals[0], threshold_75:totals[1], threshold_50:totals[2],
-  pm_dush:d, pm_child_100:c, pm_work_100:w, pm_status:'approved'});
+  pm_dush:d, pm_child_100:c, pm_work_100:w, pm_status:status});
 }
 for (const row of REGION_ROWS) {
  if (row.year === 2027 && Object.prototype.hasOwnProperty.call(APPROVED_PM_2027_20261120, row.region)) {
   recalcApprovedPm2027(row, APPROVED_PM_2027_20261120[row.region]);
+ }
+}
+for (const row of REGION_ROWS) {
+ if (row.year === 2027 && Object.prototype.hasOwnProperty.call(KRASNOYARSK_PM_2027_PROJECT_20261120, row.region)) {
+  recalcApprovedPm2027(row, KRASNOYARSK_PM_2027_PROJECT_20261120[row.region], 'project_approved');
  }
 }
 
@@ -211,8 +280,10 @@ $('form').addEventListener('submit',event=>{
  const answer=calculate(REGION_ROWS,a);$('guide').hidden=true;$('services').hidden=true;
  if(answer.error){add(result,'p',answer.error,'notice');}else{
  const approved=a.year===2026||answer.row.pm_status==='approved';
- heading.textContent=approved?`Расчёт дохода на ${a.year} год`:`Предварительный расчёт · ${a.year}`;
+ const project=a.year===2027&&answer.row.pm_status==='project_approved';
+ heading.textContent=(approved||project)?`Расчёт дохода на ${a.year} год`:`Предварительный расчёт · ${a.year}`;
  if(approved&&a.year===2027)add(result,'p','По утверждённому прожиточному минимуму','hint');
+ if(project)add(result,'p','По проекту постановления Красноярского края, одобренному 17.11.2026. Подписанный акт пока не подтверждён.','hint');
  add(result,'p',`${a.region} · взрослых с детьми 17+: ${a.adults+a.teen+a.student} · детей до 17: ${a.children}`);
  add(result,'p','Максимальный общий доход семьи за год:','hint');
  for(const [percent,key] of [[100,'threshold_100'],[75,'threshold_75'],[50,'threshold_50']]){const item=add(result,'div','','item');add(item,'div',`Для выплаты ${percent}% прожиточного минимума`);add(item,'div',money(answer.row[key]),'amount');}
