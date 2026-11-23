@@ -250,41 +250,65 @@ for (const row of REGION_ROWS) {
 
 const $=id=>document.getElementById(id);
 const regions=[...new Set(REGION_ROWS.map(r=>r.region))].sort((a,b)=>a.localeCompare(b,'ru'));
-for(const region of regions){
+const krRegions=regions.filter(r=>r.startsWith('Красноярский край — '));
+const krBase='Красноярский край';
+const krLabels={
+ 'Красноярский край — Район Северо-Енисейский, город Норильск':'Норильск, Северо-Енисейский округ',
+ 'Красноярский край — Район Туруханский':'Туруханский муниципальный округ',
+ 'Красноярский край — Район Таймырский Долгано-Ненецкий, кроме сельского поселения Хатанги':'Таймырский Долгано-Ненецкий округ (кроме отдельных посёлков Хатанги)',
+ 'Красноярский край — Сельское поселение Хатанга':'Хатанга и отдельные посёлки Таймыра',
+ 'Красноярский край — Район Эвенкийский':'Эвенкийский муниципальный округ',
+ 'Красноярский край — Город Енисейск':'Город Енисейск',
+ 'Красноярский край — Район Енисейский':'Енисейский муниципальный округ',
+ 'Красноярский край — Город Лесосибирск':'Город Лесосибирск',
+ 'Красноярский край — Район Богучанский':'Богучанский муниципальный округ',
+ 'Красноярский край — Район Кежемский':'Кежемский муниципальный округ',
+ 'Красноярский край — Район Мотыгинский':'Мотыгинский муниципальный округ',
+ 'Красноярский край — Другие территории':'Остальные территории Красноярского края'
+};
+// Keep the original data keys for calculations; expose just one krai option in the primary picker.
+const publicRegions=[...regions.filter(r=>!r.startsWith('Красноярский край — ') && r!==krBase),...(krRegions.length?[krBase]:[])].sort((a,b)=>a.localeCompare(b,'ru'));
+for(const region of publicRegions){
  const option=document.createElement('option');option.value=region;$('regions').append(option);
  const mobileOption=document.createElement('option');mobileOption.value=region;mobileOption.textContent=region;$('region-mobile').append(mobileOption);
 }
-// Mobile browsers, especially Instagram's in-app browser, do not consistently support datalist.
-// Use the platform's touch-friendly scrolling picker there, and a searchable field on desktop.
-const normalizeRegion=s=>s.toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[—–-]/g,' ').replace(/[^а-я0-9]+/g,' ').trim().replace(/\s+/g,' ');
+for(const name of krRegions){const option=document.createElement('option');option.value=name;option.textContent=krLabels[name]||name.split('— ').slice(1).join('— ');$('krasnoyarsk-territory').append(option);}
+const normalizeRegion=s=>s.toLocaleLowerCase('ru').replace(/ё/g,'е').replace(/[—–-]/g,' ').replace(/[^а-я0-9]+/g,' ').trim().replace(/\\s+/g,' ');
 function resolveRegion(input){
  const query=normalizeRegion(input);
  if(!query)return null;
- const exact=regions.find(r=>normalizeRegion(r)===query);
+ const exact=publicRegions.find(r=>normalizeRegion(r)===query);
  if(exact)return exact;
- const matches=regions.filter(r=>{
+ const matches=publicRegions.filter(r=>{
   const full=normalizeRegion(r);
   const withoutRepublic=full.replace(/^республика /,'');
   return full.includes(query)||withoutRepublic.includes(query);
  });
  return matches.length===1?matches[0]:null;
 }
-$('region').addEventListener('change',()=>{
- const resolved=resolveRegion($('region').value);
- if(resolved){$('region').value=resolved;$('region-mobile').value=resolved;}
-});
-$('region-mobile').addEventListener('change',()=>{$('region').value=$('region-mobile').value;});
+function updateKrasnoyarskChoice(){
+ const selected=window.matchMedia('(max-width:720px)').matches?$('region-mobile').value:resolveRegion($('region').value);
+ const active=selected===krBase;
+ $('krasnoyarsk-choice').hidden=!active;
+ $('krasnoyarsk-territory').disabled=!active;
+ $('krasnoyarsk-territory').required=active;
+ if(!active)$('krasnoyarsk-territory').value='';
+}
+$('region').addEventListener('input',updateKrasnoyarskChoice);
+$('region').addEventListener('change',()=>{const resolved=resolveRegion($('region').value);if(resolved){$('region').value=resolved;$('region-mobile').value=resolved;}updateKrasnoyarskChoice();});
+$('region-mobile').addEventListener('change',()=>{$('region').value=$('region-mobile').value;updateKrasnoyarskChoice();});
 const money=value=>value===null?'нет данных':new Intl.NumberFormat('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}).format(value);
 function add(parent,tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;parent.append(el);return el;}
 $('form').addEventListener('input',()=>{$('guide').hidden=true;$('services').hidden=true;$('result').replaceChildren();add($('result'),'h2','Ваш результат');add($('result'),'p','Параметры изменились. Нажмите «Получить расчёт» заново.','hint');});
 $('form').addEventListener('submit',event=>{
  event.preventDefault();
  const mobile=window.matchMedia('(max-width:720px)').matches;
- const selected=mobile?$('region-mobile').value:resolveRegion($('region').value);
+ const primary=mobile?$('region-mobile').value:resolveRegion($('region').value);
+ const selected=primary===krBase?$('krasnoyarsk-territory').value:primary;
  const a={year:Number($('year').value),region:selected||'',adults:Number($('adults').value),teen:Number($('teen').value),student:Number($('student').value),children:Number($('children').value),pregnant:$('pregnant').checked};
  const result=$('result');result.replaceChildren();const heading=add(result,'h2',`Расчёт дохода · ${a.year}`);
- if(!selected){add(result,'p','Выберите регион из списка. На телефоне нажмите на поле «Регион» и прокрутите список.','notice');result.focus();return;}
- $('region').value=selected;$('region-mobile').value=selected;
+ if(!selected){add(result,'p',primary===krBase?'Выберите город или район Красноярского края.':'Выберите регион из списка. На телефоне нажмите на поле «Регион» и прокрутите список.','notice');result.focus();return;}
+ $('region').value=primary;$('region-mobile').value=primary;
  const answer=calculate(REGION_ROWS,a);$('guide').hidden=true;$('services').hidden=true;
  if(answer.error){add(result,'p',answer.error,'notice');}else{
  const approved=a.year===2026||answer.row.pm_status==='approved';
