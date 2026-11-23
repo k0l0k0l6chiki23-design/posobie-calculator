@@ -148,6 +148,8 @@ const APPROVED_PM_2027_20261120 = {
     57543
   ]
 };
+// Камчатка: полный опубликованный прогноз 2027, НЕ утверждённое постановление на 23.11.2026.
+const KAMCHATKA_PM_2027_PRELIMINARY = {"Камчатский край": [35600, 34532, 38804]};
 // ПМ-2027 по проекту постановления, одобренному правительством края 17.11.2026.
 // До публикации подписанного акта отличаем этот источник от окончательно утверждённых данных.
 const KRASNOYARSK_PM_2027_PROJECT_20261120 = {
@@ -237,6 +239,12 @@ for (const row of REGION_ROWS) {
 for (const row of REGION_ROWS) {
  if (row.year === 2027 && Object.prototype.hasOwnProperty.call(KRASNOYARSK_PM_2027_PROJECT_20261120, row.region)) {
   recalcApprovedPm2027(row, KRASNOYARSK_PM_2027_PROJECT_20261120[row.region], 'project_approved');
+ }
+}
+
+for (const row of REGION_ROWS) {
+ if (row.year === 2027 && Object.prototype.hasOwnProperty.call(KAMCHATKA_PM_2027_PRELIMINARY, row.region)) {
+  recalcApprovedPm2027(row, KAMCHATKA_PM_2027_PRELIMINARY[row.region], 'preliminary');
  }
 }
 
